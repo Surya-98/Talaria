@@ -3,6 +3,8 @@
 #include <std_msgs/String.h>
 #include "devices/imu/bmi_160.h"
 
+#include "devices/base/analog_device.h"
+
 using namespace ros;
 
 I2CBus BodyBus(0, PC_9, PA_8);
@@ -20,6 +22,8 @@ NodeHandle nh;
 std_msgs::String network_msg;
 Publisher network_pub("network_strings", &network_msg);
 
+AnalogDevice ReadStrain(0, PC_0, 1);
+
 char hello_msg[50] = "";
 
 int main()
@@ -29,14 +33,32 @@ int main()
 
   while (1)
   {
-    if (Imu.ping())
+
+    //char hello[14] = "Hello World!\n";
+
+    // if (Imu.ping())
+    // {
+    //   sprintf(hello_msg, "Chip Id is: %x\n", Imu.getChipId());
+    // }
+    // else
+    // {
+    //   sprintf(hello_msg, "Error");
+    // }
+  
+    
+    //if (ReadStrain.ping())
     {
-      sprintf(hello_msg, "Chip Id is: %x\n", Imu.getChipId());
+      sprintf(hello_msg, "Strain = %f \n", ReadStrain.readAnalogData(5.0));
     }
-    else
-    {
-      sprintf(hello_msg, "Error");
-    }
+    // else
+    // {
+    //   sprintf(hello_msg, "Error");
+    // }
+
+  
+    //printf("Read status = %d \n", ReadStrain.ping());
+    //printf(hello);
+    //wait_ms(1000);
 
     network_msg.data = hello_msg;
     network_pub.publish(&network_msg);
