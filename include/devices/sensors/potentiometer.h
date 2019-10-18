@@ -9,32 +9,44 @@
  *
  */
 
-#ifndef BMI_160_H
-#define BMI_160_H
 
-#include "devices/base/i2c_device.h"
+/**
+ * @file potentiometer.h
+ * @author Hao Yang (hyang6@wpi.edu)
+ * @brief
+ * @version 0.1
+ * @date 2019-10-18
+ *
+ * @copyright Copyright (c) 2019
+ *
+ */
 
-class BMI_160 : public I2CDevice
+#ifndef POTENTIOMETER_H
+#define POTENTIOMETER_H
+
+#include "devices/base/analog_device.h"
+
+class potentiometer : public AnalogDevice
 {
 private:
-  enum REGISTER_ADDRESS
-  {
-    CHIP_ID = 0x68,
+//   enum REGISTER_ADDRESS
+//   {
+//     CHIP_ID = 0x68,
 
-    POLLING_ID = 0x12
-  } reg_addr;
+//     POLLING_ID = 0x12
+//   } reg_addr;
 
 protected:
 public:
   // CONSTRUCTORS
 
-  BMI_160(int address, uint8_t bus_Id, uint8_t dev_index)
-    : I2CDevice(address, bus_Id, dev_index)
+  potentiometer(uint8_t id, PinName a0, uint8_t dev_index = 0)
+    : AnalogDevice(id, a0, dev_index)
   {
   }
 
   // DESTRUCTORS
-  virtual ~BMI_160()
+  virtual ~potentiometer()
   {
   }
 
@@ -45,4 +57,4 @@ public:
   // METHODS
 };
 
-#endif  // BMI_160_H
+#endif  // POTENTIOMETER_H
