@@ -18,7 +18,7 @@ StrainGauge strain_gauge(0, p15, nh, 1, "strain_gauge",
 std_msgs::String network_msg;
 ros::Publisher network_pub("network_strings", &network_msg);
 #else
-AnalogDevice ReadStrain(0, p15, 1);
+StrainGauge strain_gauge(0, p15, 1);
 #endif
 
 char hello_msg[50] = "";

@@ -23,6 +23,8 @@ private:
   uint8_t _id;
   PinName _a0;
 
+  float _Vin = 3.3;
+
 public:
   /** CONSTRUCTORS */
 
@@ -91,11 +93,23 @@ public:
   virtual float readAnalogData(uint16_t delay_ms = 100)
   {
     float analogData;
-    analogData = this->read();
+    analogData = this->read() * _Vin;
     readReady = true;
     // wait_ms(delay_ms);
 
     return analogData;
+  }
+
+  /** GETTERS */
+
+  /**
+   * @brief Get the Vin object
+   *
+   * @return float
+   */
+  float getVin()
+  {
+    return _Vin;
   }
 };
 

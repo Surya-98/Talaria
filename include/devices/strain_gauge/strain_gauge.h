@@ -32,7 +32,6 @@ private:
                                         // other ros messages and see if any
                                         // other message fits the requirements
 #endif
-  float _Vin = 3.3;
   float _Vout_unstrained = 0.0f;
   float _Vout_strained = 0.0f;
   float _strain = 0.0f;
@@ -101,13 +100,14 @@ public:
   {
     // Publish Diagnostic messages
     Device::update();
+    float Vin = this->getVin();
 
     float GF = 2;
     _Vout_strained = this->readAnalogData();
-    _strain = (_Vout_strained - _Vout_unstrained) / _Vin;
+    _strain = (_Vout_strained / Vin) * 100;
 
 #ifndef DISABLE_ROS
-    _msg_strain_gauge.data = _strain;
+    _msg_strain_gauge.data = _strain;  //_strain;
     _pub_strain_gauge.publish(&(this->_msg_strain_gauge));
 #endif
   }
