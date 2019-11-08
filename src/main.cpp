@@ -34,22 +34,22 @@ int main()
   while (1)
   {
 
-    //char hello[14] = "Hello World!\n";
+    char hello[14] = "Hello World!\n";
 
-    // if (Imu.ping())
-    // {
-    //   sprintf(hello_msg, "Chip Id is: %x\n", Imu.getChipId());
-    // }
-    // else
-    // {
-    //   sprintf(hello_msg, "Error");
-    // }
+    if (Imu.ping())
+    {
+      sprintf(hello_msg, "Chip Id is: %x\n", Imu.getChipId());
+    }
+    else
+    {
+      sprintf(hello_msg, "Error");
+    }
   
     
     //if (ReadStrain.ping())
-    {
-      sprintf(hello_msg, "Strain = %f \n", ReadStrain.readAnalogData(5.0));
-    }
+    // {
+    //   sprintf(hello_msg, "Strain = %f \n", ReadStrain.readAnalogData(5.0));
+    // }
     // else
     // {
     //   sprintf(hello_msg, "Error");
