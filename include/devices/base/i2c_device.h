@@ -14,21 +14,35 @@
 
 #include "device.h"
 #include "i2c/i2c_bus.h"
+#include "devices/hardware.h"
 #include "mbed.h"
 
+<<<<<<< HEAD
 extern I2CBus* I2CBusses;
 
 class I2CDevice : Device
 {
 private:
   I2CBus* i2cBus;
+=======
+class I2CDevice : public Device
+{
+private:
+  I2CBus* _i2c_bus;
+>>>>>>> a3bd8829ed70c97131a9f4f5f41356713e7d4c82
   uint8_t _chip_id = 0x00;
   int _address;
 
 protected:
+#ifndef DISABLE_ROS
+#ifndef DISABLE_DIAGNOSTICS
+  diagnostic_msgs::KeyValue _diagnostic_chip_id;
+#endif
+#endif
 public:
   /** CONSTRUCTORS */
 
+#ifndef DISABLE_ROS
   /**
    * @brief Construct a new I2CDevice object
    *
@@ -36,6 +50,7 @@ public:
    * @param bus_Id
    * @param dev_index
    */
+<<<<<<< HEAD
   I2CDevice(int address, uint8_t bus_Id, uint8_t dev_index = 0)
     : Device(dev_index), _address(address << 1)
   {
@@ -47,8 +62,38 @@ public:
         break;
       }
     }
+=======
+  I2CDevice(int address, I2CBus& i2c_bus, ros::NodeHandle& nh,
+            uint8_t dev_index = 0, const char* dev_name = NULL,
+            const char* topic_name = NULL)
+    : Device(dev_index, nh, dev_name, topic_name)
+    , _address(address << 1)
+    , _i2c_bus(&i2c_bus)
+  {
+    // _i2c_bus = &i2c_bus;
+    setIndex(dev_index);
+#ifndef DISABLE_DIAGNOSTICS
+    _diagnostic_chip_id.key = "Chip Id";
+    _diagnostic_chip_id.value = (char*)0x00;
+    this->setDiagnosticsData(_diagnostic_chip_id);
+#endif
+  }
+#else
+  /**
+   * @brief Construct a new I2CDevice object
+   *
+   * @param address
+   * @param bus_Id
+   * @param dev_index
+   */
+  I2CDevice(int address, I2CBus& i2c_bus, uint8_t dev_index = 0)
+    : Device(dev_index), _address(address << 1)
+  {
+    _i2c_bus = &i2c_bus;
+>>>>>>> a3bd8829ed70c97131a9f4f5f41356713e7d4c82
     setIndex(dev_index);
   }
+#endif
 
   /** DESTRUCTOR */
 
@@ -69,15 +114,25 @@ public:
    * @return true
    * @return false
    */
-  virtual bool ping(uint8_t chip_id_reg_address = 0x00)
+  virtual bool ping(int chip_id_reg_address = 0x00, int delay_ms = 0)
   {
-    char buffer;
-    if (readByteStream(chip_id_reg_address, &buffer, (int)sizeof(buffer)) == 0)
+    uint8_t buffer;
+    if (readRegister(chip_id_reg_address, &buffer, 1))
     {
       setHealthStatus(true);
       setConfiguredStatus(true);
       setEnabledStatus(true);
-      _chip_id = (uint8_t)buffer;
+      _chip_id = buffer;
+
+#ifndef DISABLE_ROS
+#ifndef DISABLE_DIAGNOSTICS
+      _diagnostic_chip_id.value = (char*)buffer;
+      this->setDiagnosticsData(_diagnostic_chip_id);
+#endif
+#else
+      printf("Chip Id is: %x", buffer);
+      this->update();
+#endif
       return true;
     }
     else
@@ -85,9 +140,9 @@ public:
   }
 
   /**
-   * @brief Read bytestream from device
+   * @brief Read register from device
    *
-   * @detail Reads the bytestream over the respective interface for each device.
+   * @detail This function also calls a write before the read.
    *
    * @param register address
    * @param buffer
@@ -95,6 +150,7 @@ public:
    * @return true if read successful
    * @return false if write to register unsuccessfull
    */
+<<<<<<< HEAD
   virtual bool readByteStream(uint8_t address, char* buffer, int buffer_size)
   {
     if (i2cBus->write(_address, (char*)address, 1) == 0)
@@ -103,6 +159,41 @@ public:
     }
     else
       return false;
+=======
+  virtual bool readRegister(int address, uint8_t* buffer, int buffer_size,
+                            bool poll = false, int delay_ms = 0)
+  {
+    char reg_address[1] = { address };
+    int write_state = _i2c_bus->write(_address, reg_address, 1, true);
+    wait_ms(delay_ms);
+    int read_state = this->readBytes((char*)buffer, buffer_size);
+
+#ifdef DISABLE_ROS
+    printf("Write State: %d\n", write_state);
+    printf("Read State: %d\n", read_state);
+#endif
+
+    return !((write_state && read_state) && 0);
+    // if (_i2c_bus->write(_address, reg_address, 1, true) == 0)
+    // {
+    //   return _i2c_bus->read(_address, (char*)buffer, buffer_size) == 0;
+    // }
+    // else
+    //   return false;
+  }
+
+  /**
+   * @brief Read bytes from a device, no write before the read.
+   *
+   * @param buffer
+   * @param buffer_size
+   * @return true if ACK
+   * @return false if NACK
+   */
+  virtual bool readBytes(char* buffer, int buffer_size, bool poll = false)
+  {
+    return _i2c_bus->read(_address, buffer, buffer_size, poll);
+>>>>>>> a3bd8829ed70c97131a9f4f5f41356713e7d4c82
   }
 
   /**
@@ -119,13 +210,28 @@ public:
     resetPin = true;
   }
 
+<<<<<<< HEAD
   virtual int writeByteStream(uint8_t address, char* buffer, int buffer_size)
+=======
+  /**
+   * @brief Write to a register on a device
+   *
+   * @param uint8_t register address
+   * @param char* buffer
+   * @param int buffer_size
+   * @return write Status
+   * @return true if ACK
+   * @return false if NACK
+   */
+  virtual int writeRegister(uint8_t address, char* buffer, int buffer_size,
+                            bool poll = false)
+>>>>>>> a3bd8829ed70c97131a9f4f5f41356713e7d4c82
   {
     char new_buffer[buffer_size + 1];
     new_buffer[0] = (char)address;
     memcpy(&new_buffer[1], buffer, buffer_size + 1);
 
-    return i2cBus->write(_address, new_buffer, buffer_size + 1);
+    return _i2c_bus->write(_address, new_buffer, buffer_size + 1, poll) == 0;
   }
 
   /** GETTERS */
@@ -140,14 +246,22 @@ public:
     return _chip_id;
   }
 
+  /** SETTERS */
+
   /**
+<<<<<<< HEAD
    * @brief Get the Address object
    *
    * @return int _address
+=======
+   * @brief Set the Chip Id object
+   *
+   * @param chip_id
+>>>>>>> a3bd8829ed70c97131a9f4f5f41356713e7d4c82
    */
-  int getAddress()
+  void setChipId(uint8_t chip_id)
   {
-    return _address;
+    _chip_id = chip_id;
   }
 };
 
